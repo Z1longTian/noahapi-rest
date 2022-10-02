@@ -1,8 +1,9 @@
 import { ethers } from 'ethers'
+import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import { mint, sell, cancel, buy, start, vote, end } from '../controllers/nft.js'
-
+dotenv.config()
 // abi
 const abiPath = path.resolve() + '/src/contracts/nft.json'
 const abi = JSON.parse(fs.readFileSync(abiPath, 'utf-8'))

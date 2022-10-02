@@ -1,9 +1,12 @@
 import express from 'express'
 import cors from 'cors'
+import dotenv from 'dotenv'
 import { connectDB } from './db/index.js'
 import { errHandler, apiProtect } from './middlewares/index.js'
 import { routes } from './utils/importRoutes.js' // routes
 import { } from './contracts/ethers.js'
+
+dotenv.config()
 
 // database connection
 await connectDB()
