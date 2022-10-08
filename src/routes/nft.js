@@ -6,7 +6,6 @@ import Game from '../models/game.js'
 import { nftExist, addrVli, accExist, cidExist, inpVli } from "../middlewares/index.js"
 import { success } from '../utils/response.js'
 import { syncNFT } from '../controllers/nft.js'
-import { utils } from '../contracts/ethers.js'
 import { ipfsURI, httpURL } from '../utils/index.js'
 
 const route = 'nft'
@@ -84,7 +83,7 @@ router.get('/:tokenid', nftExisted, async (req, res) => {
         ]
     ))
     nft.games = await Game.find({ tokenid, finished: true })
-    nft.currentGame = await Game.find({ tokenid, finished: false })
+    nft.currentGame = await Game.findOne({ tokenid, finished: false })
     success(res, 'ok', nft)
 })
 
@@ -164,7 +163,7 @@ router.post('/search', async (req, res) => {
 //////////////////////////////////////////////////////////////
 
 /**
- * 
+* update name of nft
 */
 router.put('/updname', nftExisted, nameVli, async (req, res) => {
     const tokenid = req.tokenid
@@ -177,7 +176,7 @@ router.put('/updname', nftExisted, nameVli, async (req, res) => {
 })
 
 /**
- * 
+* update description of nft
 */
 router.put('/upddesc', nftExisted, descVli, async (req, res) => {
     const tokenid = req.tokenid

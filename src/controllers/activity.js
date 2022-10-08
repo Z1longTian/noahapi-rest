@@ -1,7 +1,7 @@
 import Activity from "../models/activity.js"
 
-const recordActivity = async (activity) => {
-    await Activity.create({
+const recordActivity = (activity) => {
+    Activity.create({
         ...activity
     })
 }

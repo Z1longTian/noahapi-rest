@@ -12,9 +12,10 @@ const syncNFT = async (tokenid) => {
     const nft = await getNftInfo(tokenid)
     await NFT.findOneAndUpdate(
         { tokenid },
-        { $inc: { views: 1 }},
         { 
+            $inc: { views: 1 },
             $set: {
+                owner: nft.owner.toLowerCase(),
                 amount: nft.amount.toString(),
                 currentAmount: nft.currentAmount.toString(),
                 start: nft.startTime.toString(),
@@ -22,8 +23,7 @@ const syncNFT = async (tokenid) => {
                 onSale: nft.isOnSelling,
                 round: nft.round.toString()
             }
-        },
-        
+        }
     )
 }
 
@@ -40,7 +40,7 @@ const mint = async (address, tokenid, id) => {
         }}
     )
 
-    await recordActivity({
+    recordActivity({
         address,
         activity: 'Mint',
         from: null,
@@ -56,12 +56,12 @@ const mint = async (address, tokenid, id) => {
 const sell = async (seller, tokenid, price) => {
     await NFT.findOneAndUpdate(
         { tokenid },
-        { $set: { price }}
+        { $set: { price, onSale: true }}
     )
 
-    await Trade.create({ seller, price, tokenid, start: Date.now()})
+    Trade.create({ seller, price, tokenid, start: Date.now()})
 
-    await recordActivity({
+    recordActivity({
         address: seller,
         activity: 'Listing',
         from: null,
@@ -74,17 +74,19 @@ const sell = async (seller, tokenid, price) => {
 }
 
 const cancel = async (seller, tokenid, time) => {
-    await Trade.fineOndAndUpdate(
+
+    time = Date.now()
+    await Trade.findOneAndUpdate(
         { tokenid, finished: false},
         { $set: { finished: true, cancelled: true, end: time}}
     )
-    await recordActivity({
+    recordActivity({
         address: seller,
         activity: 'Unlist',
         from: null,
         to: null,
         nft: tokenid,
-        price,
+        price: null,
         round: null,
         date: time
     })
@@ -92,13 +94,19 @@ const cancel = async (seller, tokenid, time) => {
 
 const buy = async (buyer, tokenid, price) => {
     const time = Date.now()
+
+    await NFT.findOneAndUpdate(
+        { tokenid },
+        { $set: { owner: buyer, onSale: false }}
+    )
+
     const trade = await Trade.findOneAndUpdate(
         { tokenid, finished: false},
-        { $set: { buyer, price, finished: true, end: time}}
+        { $set: { buyer, price, finished: true, end: time }}
     )
 
     // record seller activity
-    await recordActivity({
+    recordActivity({
         address: trade.seller,
         activity: 'Sold',
         from: null,
@@ -110,7 +118,7 @@ const buy = async (buyer, tokenid, price) => {
     })
 
     // buyer activity
-    await recordActivity({
+    recordActivity({
         address: buyer,
         activity: 'Purchase',
         from: trade.seller,
@@ -120,26 +128,30 @@ const buy = async (buyer, tokenid, price) => {
         round: null,
         date: time
     })
-
+    const reward = (parseFloat(price) * 0.85).toString()
     // send mail to seller
     await sendMail(trade.seller, 
         `Your trade on NFT #${tokenid} is successfully completed at price ${utils.formatUnits(price)} BNB.
-         You earned ${utils.formatUnits(price * 0.85)} BNB from this trade.`
+         You earned ${utils.formatUnits(reward)} BNB from this trade.`
     )
 }
 
-const start = async (tokenid, time) => {
-    const nft = await NFT.findOne({tokenid})
-    await Game.create({tokenid, start: time, round: nft.round + 1})
+const start = async (tokenid, round) => {
+    const time = Date.now()
+    const nft = await NFT.findOneAndUpdate(
+        { tokenid },
+        { $set: { inGame: true }}
+    )
+    Game.create({tokenid, start: time, round})
 
-    await recordActivity({
+    recordActivity({
         address: nft.owner,
         activity: 'Start Evaluation',
         from: null,
         to: null,
         nft: tokenid,
         price: null,
-        round: nft.round+1,
+        round: round,
         date: time
     })
 }
@@ -162,7 +174,7 @@ const vote = async (voter, tokenid, typa, start) => {
         )
     }
 
-    await recordActivity({
+    recordActivity({
         address: voter,
         activity: 'Vote',
         from: null,
@@ -180,22 +192,26 @@ const vote = async (voter, tokenid, typa, start) => {
     )
 }
 
-const end = async (tokenid, type, reward, scale, approves, defuses) => {
+const end = async (tokenid, type, reward, scale, approves, defuses, round) => {
+    await NFT.findOneAndUpdate(
+        { tokenid },
+        { $set: { inGame: false}}
+    )
     const game = await Game.findOneAndUpdate(
-        { tokenid, finished: false},
+        { tokenid, round},
         { $set: { finished: true, typa: type }}
     )
 
     const nft = await NFT.findOne({ tokenid })
 
-    await recordActivity({
+    recordActivity({
         address: nft.owner,
         activity: 'End Evaluation',
         from: null,
         to: null,
         nft: tokenid,
         price: null,
-        round: game.round,
+        round: round,
         date: Date.now()
     })
     let winVoters = game.upVoters
@@ -249,6 +265,47 @@ const end = async (tokenid, type, reward, scale, approves, defuses) => {
     )
 }
 
+// Todos
+const upgrade = async (tokenid) => {
+    const nft = await NFT.findOneAndUpdate(
+        { tokenid },
+        { $inc: { level: 1 }}
+    )
+
+    recordActivity({
+        address: nft.owner,
+        activity: 'NFT Upgrade',
+        from: null,
+        to: null,
+        nft: tokenid,
+        price: null,
+        round: null,
+        date: Date.now()
+    })
+}
+
+const burn = async (tokenid, dieTokenid) => {
+    const dieNFT = await NFT.findOneAndUpdate(
+        { tokenid: dieTokenid },
+        { $set: { amount: 0 }}
+    )
+    const nft = await NFT.findOneAndUpdate(
+        { tokenid },
+        { $inc: { amount: dieNFT.amount }}
+    )
+
+    recordActivity({
+        address: nft.owner,
+        activity: 'Amount Transfer',
+        from: null,
+        to: null,
+        nft: dieTokenid,
+        price: null,
+        round: null,
+        date: Date.now()
+    })
+}
+
 export {
     syncNFT,
     mint,
@@ -257,5 +314,7 @@ export {
     buy,
     start,
     vote,
-    end
+    end,
+    upgrade,
+    burn
 }
