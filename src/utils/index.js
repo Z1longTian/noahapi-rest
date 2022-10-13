@@ -2,7 +2,7 @@
 const roundDuration = 600
 
 // admin list, store admin lists in a list and covert them into lowercase
-// const adminList = process.env.ADMINS.split(',').map(e => e.toLowerCase())
+const adminList = process.env.ADMINS.split(',').map(e => e.toLowerCase())
 
 const isAdmin = (address) => adminList.includes(address.toLowerCase())
 
@@ -21,5 +21,4 @@ export {
     httpURL,
     isAdmin,
     roundDuration,
-    // adminList,
 }

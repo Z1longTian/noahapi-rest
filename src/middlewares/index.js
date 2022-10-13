@@ -2,7 +2,7 @@ import Account from '../models/account.js'
 import NFT from '../models/nft.js'
 import { failure, resMsg } from '../utils/response.js'
 import { utils } from '../contracts/ethers.js'
-// import { adminList } from '../utils/index.js'
+import { isAdmin } from '../utils/index.js'
 
 // simple api key protection
 const apiProtect = (req, res, next) => {
@@ -90,7 +90,7 @@ const inpVli = (field, vliFn) => {
 const adminVli = (field) => {
     return async (req, res, next) => {
         const address = req.body[field] || req.params[field]
-        if(!admins.includes(address)){
+        if(!isAdmin(address)){
             failure(res, resMsg.unauthorized)
             return
         }
