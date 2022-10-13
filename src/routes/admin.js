@@ -13,7 +13,7 @@ const adminCheck = adminVli('address') // admin check
 //////////////////////////////////////////////////////////////
 //                      GETs
 //////////////////////////////////////////////////////////////
-router.get('/:address', addrVli, adminVli, (req, res) => {
+router.get('/:address', addressVli, adminCheck, (req, res) => {
     success(res, 'ok', {})
 })
 
