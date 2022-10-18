@@ -23,9 +23,8 @@ contract.on('StartGame', (tokenid, round) => {
     start(tokenid.toString(), round.toString())
 })
 
-contract.on('GameOver', (tokenid, type, reward, scale, approves, defuses, round) => {
-    end(tokenid.toString(), type.toString(), reward.toString(), scale, approves, defuses, 
-    round.toString())    
+contract.on('GameOver', (tokenid, type, reward, approves, defuses, round) => {
+    end(tokenid.toString(), type.toString(), reward.toString(), round.toString())    
 })
 
 contract.on('Vote', (voter, tokenid, type, start) => {

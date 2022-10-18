@@ -192,8 +192,8 @@ const vote = async (voter, tokenid, typa, start) => {
     )
 }
 
-const end = async (tokenid, type, reward, scale, approves, defuses, round) => {
-    await NFT.findOneAndUpdate(
+const end = async (tokenid, type, reward, round) => {
+    const nft = await NFT.findOneAndUpdate(
         { tokenid },
         { $set: { inGame: false}}
     )
@@ -201,8 +201,6 @@ const end = async (tokenid, type, reward, scale, approves, defuses, round) => {
         { tokenid, round},
         { $set: { finished: true, typa: type }}
     )
-
-    const nft = await NFT.findOne({ tokenid })
 
     recordActivity({
         address: nft.owner,
@@ -296,7 +294,7 @@ const burn = async (tokenid, dieTokenid) => {
 
     recordActivity({
         address: nft.owner,
-        activity: 'Amount Transfer',
+        activity: 'Value Transfer',
         from: null,
         to: null,
         nft: dieTokenid,
