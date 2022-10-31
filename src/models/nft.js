@@ -7,6 +7,7 @@ import AutoIncrementFactory from 'mongoose-sequence'
 
 const nft = mongoose.Schema(
     {
+        // info
         creator: {
             type: String,
             required: true
@@ -26,6 +27,19 @@ const nft = mongoose.Schema(
             type: Number,
             default: 0
         },
+        views: {
+            type: Number,
+            default: 0
+        },
+        amount: {
+            type: Number,
+            default: 0
+        },
+        level: {
+            type: Number,
+            default: 1
+        },
+        // cid ipfs http
         cid: {
             type: String,
             default: null
@@ -38,18 +52,18 @@ const nft = mongoose.Schema(
             type: String,
             default: null
         },
-        amount: {
-            type: Number,
-            default: 0
+        // current bet info
+        upVoters:{
+            type: [String]
+        },
+        downVoters: {
+            type: [String]
         },
         currentAmount: {
             type: Number,
             default: 0
         },
-        level: {
-            type: Number,
-            default: 1
-        },
+        
         round: {
             type: Number,
             default: 0
@@ -57,14 +71,15 @@ const nft = mongoose.Schema(
         start: {
             type: Number,
         },
-        views: {
-            type: Number,
-            default: 0
-        },
+        // current trade info
         price: {
             type: Number,
             default: null
         },
+        tradeStart: {
+            type: Number,
+        },
+        // nft status
         onSale: {
             type: Boolean,
             default: false
@@ -80,9 +95,6 @@ const nft = mongoose.Schema(
         isMinted: {
             type: Boolean,
             default: false
-        },
-        mintTime: {
-            type: Number,
         },
         isActive: {
             type: Boolean,

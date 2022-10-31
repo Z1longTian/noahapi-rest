@@ -15,7 +15,7 @@ const account = mongoose.Schema(
             default: true
         },
         likes: [Number], // [tokenids],
-        evaluatings: [Number],
+        bets: [Number],
         mails: [Object] // { mailid, content, date, read }
     },
     {

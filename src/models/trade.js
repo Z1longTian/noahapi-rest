@@ -16,19 +16,11 @@ const trade = mongoose.Schema(
         },
         buyer: {
             type: String,
-            default:  null
+            required: true
         },
         price: {
             type: Number,
             required: true
-        },
-        finished: {
-            type: Boolean,
-            default: false
-        },
-        cancelled: {
-            type: Boolean,
-            default: false
         },
         start: {
             type: Number,

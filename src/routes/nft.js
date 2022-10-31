@@ -60,8 +60,6 @@ router.get('/:tokenid', nftExisted, async (req, res) => {
             { 
                 $match: {
                     tokenid: Number(tokenid), 
-                    finished: true, 
-                    cancelled: false
                 }
             },
             {
@@ -82,8 +80,7 @@ router.get('/:tokenid', nftExisted, async (req, res) => {
             }
         ]
     ))
-    nft.games = await Game.find({ tokenid, finished: true })
-    nft.currentGame = await Game.findOne({ tokenid, finished: false })
+    nft.games = await Game.find({ tokenid })
     success(res, 'ok', nft)
 })
 

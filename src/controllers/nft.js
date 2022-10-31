@@ -21,7 +21,8 @@ const syncNFT = async (tokenid) => {
                 start: nft.startTime.toString(),
                 inGame: nft.isRunning,
                 onSale: nft.isOnSelling,
-                round: nft.round.toString()
+                round: nft.round.toString(),
+                level: nft.level.toString()
             }
         }
     )
@@ -35,8 +36,7 @@ const mint = async (address, tokenid, id) => {
             tokenid,
             owner: address,
             isMinted: true,
-            amount: utils.parseUnits('1', 'ether'),
-            mintTime: Date.now()
+            amount: utils.parseUnits('0.3', 'ether')
         }}
     )
 
@@ -56,10 +56,8 @@ const mint = async (address, tokenid, id) => {
 const sell = async (seller, tokenid, price) => {
     await NFT.findOneAndUpdate(
         { tokenid },
-        { $set: { price, onSale: true }}
+        { $set: { price, tradeStart: Date.now(), onSale: true }}
     )
-
-    Trade.create({ seller, price, tokenid, start: Date.now()})
 
     recordActivity({
         address: seller,
@@ -74,12 +72,11 @@ const sell = async (seller, tokenid, price) => {
 }
 
 const cancel = async (seller, tokenid, time) => {
-
-    time = Date.now()
-    await Trade.findOneAndUpdate(
-        { tokenid, finished: false},
-        { $set: { finished: true, cancelled: true, end: time}}
+    await NFT.findOneAndUpdate(
+        { tokenid },
+        { $set: {onSale: false}}
     )
+
     recordActivity({
         address: seller,
         activity: 'Unlist',
@@ -88,91 +85,85 @@ const cancel = async (seller, tokenid, time) => {
         nft: tokenid,
         price: null,
         round: null,
-        date: time
+        date: Date.now()
     })
 }
 
 const buy = async (buyer, tokenid, price) => {
-    const time = Date.now()
 
-    await NFT.findOneAndUpdate(
+    const nft = await NFT.findOneAndUpdate(
         { tokenid },
         { $set: { owner: buyer, onSale: false }}
     )
 
-    const trade = await Trade.findOneAndUpdate(
-        { tokenid, finished: false},
-        { $set: { buyer, price, finished: true, end: time }}
-    )
+    // record the trade info
+    Trade.create({ seller: nft.owner, buyer, price, tokenid, start: nft.tradeStart, end: Date.now()})
 
     // record seller activity
     recordActivity({
-        address: trade.seller,
+        address: nft.owner,
         activity: 'Sold',
         from: null,
         to: buyer,
         nft: tokenid,
         price,
         round: null,
-        date: time
+        date: Date.now()
     })
 
     // buyer activity
     recordActivity({
         address: buyer,
         activity: 'Purchase',
-        from: trade.seller,
+        from: nft.owner,
         to: null,
         nft: tokenid,
         price,
         round: null,
-        date: time
+        date: Date.now()
     })
+
     const reward = (parseFloat(price) * 0.85).toString()
     // send mail to seller
-    await sendMail(trade.seller, 
+    await sendMail(nft.owner, 
         `Your trade on NFT #${tokenid} is successfully completed at price ${utils.formatUnits(price)} BNB.
          You earned ${utils.formatUnits(reward)} BNB from this trade.`
     )
 }
 
 const start = async (tokenid, round) => {
-    const time = Date.now()
     const nft = await NFT.findOneAndUpdate(
         { tokenid },
-        { $set: { inGame: true }}
+        { $set: { inGame: true, start: Date.now(), round }}
     )
-    Game.create({tokenid, start: time, round})
 
     recordActivity({
         address: nft.owner,
-        activity: 'Start Evaluation',
+        activity: 'Start Bet',
         from: null,
         to: null,
         nft: tokenid,
         price: null,
         round: round,
-        date: time
+        date: Date.now()
     })
 }
 
 const vote = async (voter, tokenid, typa, start) => {
     await Account.findOneAndUpdate(
         { address: voter },
-        { $push: {evaluating: tokenid }}
+        { $push: { bets: tokenid }}
     )
-    let game
-    if(typa == '1') {
-        game = await Game.findOneAndUpdate(
-            { tokenid, finished: false},
-            { $push: { upVoters: voter }}
-        )
-    } else if(typa == '2') {
-        game = await Game.findOneAndUpdate(
-            { tokenid, finished: false},
-            { $push: { downVoters: voter }}
-        )
+
+    const result = () => {
+        if (typa == '1') return { upVoters: voter}
+        return { downVoters: voter }
     }
+
+    const nft = await NFT.findOneAndUpdate(
+        { tokenid },
+        { $push: result()}
+    )
 
     recordActivity({
         address: voter,
@@ -181,13 +172,13 @@ const vote = async (voter, tokenid, typa, start) => {
         to: null,
         nft: tokenid,
         price: null,
-        round: game.round,
+        round: nft.round,
         date: Date.now()
     })
 
     // send mail to seller
     await sendMail(voter, 
-        `Thanks for participating the round ${game.round} of evaluation of NFT#${tokenid}, 
+        `Thanks for participating the round ${nft.round} of bet of NFT#${tokenid}, 
         You will receive the result of this round when it is finished via mails.`
     )
 }
@@ -197,14 +188,19 @@ const end = async (tokenid, type, reward, round) => {
         { tokenid },
         { $set: { inGame: false}}
     )
-    const game = await Game.findOneAndUpdate(
-        { tokenid, round},
-        { $set: { finished: true, typa: type }}
-    )
+    
+    Game.create({
+        tokenid,
+        start: nft.start,
+        typa: type,
+        round: nft.round,
+        upVoters: nft.upVoters,
+        downVoters: nft.downVoters
+    })
 
     recordActivity({
         address: nft.owner,
-        activity: 'End Evaluation',
+        activity: 'Reveal Bet',
         from: null,
         to: null,
         nft: tokenid,
@@ -212,11 +208,11 @@ const end = async (tokenid, type, reward, round) => {
         round: round,
         date: Date.now()
     })
-    let winVoters = game.upVoters
-    let loseVoters = game.downVoters
+    let winVoters = nft.upVoters
+    let loseVoters = nft.downVoters
     if(type == 2) {
-        winVoters = game.downVoters
-        loseVoters = game.upVoters
+        winVoters = nft.downVoters
+        loseVoters = nft.upVoters
     }
     // draw
     if(type == 3) {
@@ -256,10 +252,10 @@ const end = async (tokenid, type, reward, round) => {
             }}
         )
     }
-    // remove evaluating
+    // remove bettings
     await Account.updateMany(
         { address: { $in: (winVoters.concat(loseVoters))}},
-        { $pull: { evaluating: tokenid }}
+        { $pull: { bets: tokenid }}
     )
 }
 

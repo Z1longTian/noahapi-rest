@@ -24,10 +24,6 @@ const game = mongoose.Schema(
         downVoters: {
             type: [String]
         },
-        finished: {
-            type: Boolean,
-            default: false
-        },
         round: {
             type: Number,
             default: 0

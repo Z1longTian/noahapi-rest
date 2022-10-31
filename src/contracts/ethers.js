@@ -9,7 +9,7 @@ const abiPath = path.resolve() + '/src/contracts/nft.json'
 const abi = JSON.parse(fs.readFileSync(abiPath, 'utf-8'))
 
 // nft contract address
-const address = '0xa3F23A7BB13c0DA5541aB629913883348A48E794'
+const address = '0xd9BB32C2E5d7D681ec54c016dE171340b31b9298'
 const provider = new ethers.providers.JsonRpcProvider(process.env.NODE_PROVIDER)
 const contract = new ethers.Contract(address, abi, provider)
 

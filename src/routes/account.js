@@ -41,9 +41,9 @@ router.get('/:address', addressVli, accountExist, async (req, res) => {
             }},
             { $lookup: {
                 from: NFT.collection.name,
-                localField: 'evaluatings',
+                localField: 'bets',
                 foreignField: 'tokenid',
-                as: 'evaluatings'
+                as: 'bets'
             }},
         ]
     ))[0]
