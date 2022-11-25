@@ -6,16 +6,15 @@ const account = mongoose.Schema(
             type: String,
             required: true
         },
-        nickname: {
+        name: {
             type: String,
             default: 'unnamed'
         },
-        isActive: {
+        active: {
             type: Boolean,
             default: true
         },
         likes: [Number], // [tokenids],
-        bets: [Number],
         mails: [Object] // { mailid, content, date, read }
     },
     {

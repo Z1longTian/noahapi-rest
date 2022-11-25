@@ -2,8 +2,9 @@ import express from 'express'
 import Account from '../models/account.js'
 import NFT from '../models/nft.js'
 import Trade from '../models/trade.js'
-import Game from '../models/game.js'
-import { nftExist, addrVli, accExist, cidExist, inpVli } from "../middlewares/index.js"
+import Battle from '../models/battle.js'
+import { getUpgradeRequirements } from '../contracts/nft.js'
+import { nftExist, addrVli, accExist, cidExist, inpVli, activeUser, activeNFT } from "../middlewares/index.js"
 import { success } from '../utils/response.js'
 import { syncNFT } from '../controllers/nft.js'
 import { ipfsURI, httpURL } from '../utils/index.js'
@@ -13,6 +14,8 @@ const router = express.Router()
 
 // middlewares 
 const nftExisted = nftExist('tokenid') // nft existance check
+const activeNft = activeNFT('tokenid')
+const activeAcc = activeUser('address')
 const accountExist = accExist('address') // account existance check
 const addressVli = addrVli('address') // address validator
 // input vlidator of name & description
@@ -30,7 +33,7 @@ const descVli = inpVli('description', fieldVli(200)) // desc validator
 /**
  * 
 */
-router.get('/:tokenid', nftExisted, async (req, res) => {
+router.get('/:tokenid', nftExisted, activeNft,  async (req, res) => {
     const tokenid = req.tokenid
     
     await syncNFT(tokenid) // sync nft data between chain and database
@@ -80,7 +83,48 @@ router.get('/:tokenid', nftExisted, async (req, res) => {
             }
         ]
     ))
-    nft.games = await Game.find({ tokenid })
+    nft.currentBattle = (await Battle.aggregate(
+        [
+            {
+                $match: { 
+                    $and: [
+                        { finished: false},
+                        { tokenids: Number(tokenid)}
+                    ]
+                }  
+            },
+
+            {
+                $lookup: {
+                    from: NFT.collection.name,
+                    localField: 'tokenids',
+                    foreignField: 'tokenid',
+                    as: 'nfts'
+                }
+            }
+        ]
+    ))[0]
+    nft.battles = await Battle.aggregate(
+        [
+            {
+                $match: { 
+                    $and: [
+                        { finished: true},
+                        { tokenids: Number(tokenid)}
+                    ]
+                }  
+            },
+            {
+                $lookup: {
+                    from: NFT.collection.name,
+                    localField: 'tokenids',
+                    foreignField: 'tokenid',
+                    as: 'nfts'
+                }
+            },
+        ]
+    )
+    nft.upgradeRequirements = await getUpgradeRequirements(tokenid)
     success(res, 'ok', nft)
 })
 
@@ -95,7 +139,7 @@ router.get('/:tokenid', nftExisted, async (req, res) => {
  *      - description
  *      - cid
 */
-router.post('/create', addressVli, accountExist, nameVli, descVli, cidExist, async (req, res) => {
+router.post('/create', addressVli, accountExist, activeAcc, nameVli, descVli, cidExist, async (req, res) => {
     const address = req.address
     const { name, description, cid } = req.body
 
@@ -108,7 +152,7 @@ router.post('/create', addressVli, accountExist, nameVli, descVli, cidExist, asy
         ipfsURI: ipfsURI(cid),
         httpURL: httpURL(cid)
     })
-    success(res, 'ok', {})
+    success(res, 'NFT created', {})
 })
 
 /**
@@ -121,7 +165,7 @@ router.post('/search', async (req, res) => {
     const start = (page - 1) * page_size // start index
     const end = start + page_size // end index
     const typeFilter = {
-        '0': {isMinted: true}, '1': {onSale: true}, '2': {inGame: true}
+        '0': {minted: true}, '1': {listed: true}, '2': {battling: true}
     }
     const keyFilter = () => {
         const reg = new RegExp(key)
@@ -162,7 +206,7 @@ router.post('/search', async (req, res) => {
 /**
 * update name of nft
 */
-router.put('/updname', nftExisted, nameVli, async (req, res) => {
+router.put('/updname', nftExisted, activeNft, nameVli, async (req, res) => {
     const tokenid = req.tokenid
     const name = req.body.name
     await NFT.findOneAndUpdate(
@@ -175,7 +219,7 @@ router.put('/updname', nftExisted, nameVli, async (req, res) => {
 /**
 * update description of nft
 */
-router.put('/upddesc', nftExisted, descVli, async (req, res) => {
+router.put('/upddesc', nftExisted, activeNft, descVli, async (req, res) => {
     const tokenid = req.tokenid
     const description = req.body.description
     await NFT.findOneAndUpdate(

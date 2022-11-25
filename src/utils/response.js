@@ -21,8 +21,10 @@ const resMsg = {
     unauthorized: 'Authorisation required',
     notAllowed: 'Request not allowed',
     nftExisted: 'Content already existed',
+    accBanned: (address) => `Account ${address} is banned`,
+    nftBanned: (tokenid) => `NFT#${tokenid} is banned`,
     web3AddrInvli: (target) => `Invalid address: ${target}`, // web3 Address Invli
-    accNotExist: (account) => `Account: ${account}, does not exist`,
+    accNotExist: (account) => `Account ${account}, does not exist`,
     cidExisted: (cid) => `Content: ${cid}, existed`,
     nftNotExist: (tokenid) => `NFT: ${tokenid}, does not exist`,
     inpInvalid: (field) => `${field} invalid`

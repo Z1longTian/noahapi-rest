@@ -1,10 +1,6 @@
-// duration time of a round
-const roundDuration = 600
+import { admin } from "../contracts/nft.js"
 
-// admin list, store admin lists in a list and covert them into lowercase
-const adminList = process.env.ADMINS.split(',').map(e => e.toLowerCase())
-
-const isAdmin = (address) => adminList.includes(address.toLowerCase())
+const isAdmin = (address) => admin === address
 
 // convert cid to ipfs uri
 const ipfsURI = (cid) => {
@@ -20,5 +16,4 @@ export {
     ipfsURI,
     httpURL,
     isAdmin,
-    roundDuration,
 }

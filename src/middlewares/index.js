@@ -1,7 +1,7 @@
 import Account from '../models/account.js'
 import NFT from '../models/nft.js'
 import { failure, resMsg } from '../utils/response.js'
-import { utils } from '../contracts/ethers.js'
+import { utils } from '../contracts/nft.js'
 import { isAdmin } from '../utils/index.js'
 
 // simple api key protection
@@ -28,7 +28,7 @@ const errHandler = (err, req, res, next) => {
 // address validation
 const addrVli = (field) => {
     return async (req, res, next) => {
-        const address = req.body[field] || req.params[field]
+        const address = req.params[field] || req.body[field]
         if(!utils.isAddress(address)){
             failure(res, resMsg.web3AddrInvli(address))
             return
@@ -98,6 +98,31 @@ const adminVli = (field) => {
     }
 }
 
+// active user
+const activeUser = (field) => {
+    return async (req, res, next) => {
+        const address = req[field]
+        const user = await Account.findOne({address})
+        if(!user.active){
+            failure(res, resMsg.accBanned(address))
+            return
+        }
+        next()
+    }
+}
+
+const activeNFT = (field) => {
+    return async (req, res, next) => {
+        const tokenid = req[field]
+        const nft = await NFT.findOne({tokenid})
+        if(!nft.active) {
+            failure(res, resMsg.nftBanned(tokenid))
+            return
+        }
+        next()
+    }
+}
+
 export {
     errHandler,
     accExist,
@@ -106,5 +131,7 @@ export {
     adminVli,
     nftExist,
     cidExist,
-    apiProtect
+    apiProtect,
+    activeUser,
+    activeNFT
 }

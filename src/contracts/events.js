@@ -1,42 +1,60 @@
-import { mint, sell, cancel, buy, start, vote, end, upgrade, burn } from '../controllers/nft.js'
-import { contract } from './ethers.js'
-
+import { mint, upgrade, valueTransfer, burn, tradeList, tradeUnlist, tradePurchase, 
+lobbyJoin, lobbyExit, battleStart, battleVote, battleEnd, update } from '../controllers/nft.js'
+import { contract } from './nft.js'
 
 // events
-contract.on('Mint', (address, tokenid, id) => {
-    mint(address.toLowerCase(), tokenid.toString(), id.toString())
+contract.on('Mint', (address, tokenid, id, time) => {
+    mint(address.toLowerCase(), tokenid.toString(), id.toString(), time.toString())
 })
 
-contract.on('AddOrder', (seller, tokenid, price) => {
-    sell(seller.toLowerCase(), tokenid.toString(), price.toString())
+contract.on('Upgrade', (tokenid, level, time) => {
+    upgrade(tokenid.toString(), level.toString(), time.toString())
 })
 
-contract.on('CancelOrder', (seller, tokenid, time) => {
-    cancel(seller.toLowerCase(), tokenid.toString(), time.toString())
+contract.on('ValueTransfer', (from, to, time) => {
+    valueTransfer(from.toString(), to.toString(), time.toString())
 })
 
-contract.on('FinishOrder', (buyer, tokenid, price) => {
-    buy(buyer.toLowerCase(), tokenid.toString(), price.toString())
+contract.on('Burn', (tokenid, time) => {
+    burn(tokenid.toString(), time.toString())
 })
 
-contract.on('StartGame', (tokenid, round) => {
-    start(tokenid.toString(), round.toString())
+contract.on('UpdateConfigs', () => {
+    update()
 })
 
-contract.on('GameOver', (tokenid, type, reward, approves, defuses, round) => {
-    end(tokenid.toString(), type.toString(), reward.toString(), round.toString())    
+// Trade events
+contract.on('TradeList', (seller, tokenid, price, time) => {
+    tradeList(seller.toLowerCase(), tokenid.toString(), price.toString(), time.toString())
 })
 
-contract.on('Vote', (voter, tokenid, type, start) => {
-    vote(voter.toLowerCase(), tokenid.toString(), type.toString(), start.toString())
+contract.on('TradeUnlist', (seller, tokenid, time) => {
+    tradeUnlist(seller.toLowerCase(), tokenid.toString(), time.toString())
 })
 
-contract.on('Upgrade', (tokenid) => {
-    upgrade(tokenid.toString())
+contract.on('TradePurchase', (seller, buyer, tokenid, price, time) => {
+    tradePurchase(seller.toLowerCase(), buyer.toLowerCase(), tokenid.toString(), price.toString(), time.toString())
 })
 
-contract.on('Burn', (tokenid, dieTokenid) => {
-    burn(tokenid.toString(), dieTokenid.toString())
+// Battle events
+contract.on('LobbyJoin', (tokenid, time) => {
+    lobbyJoin(tokenid.toString(), time.toString())
+})
+
+contract.on('LobbyExit', (tokenid, time) => {
+    lobbyExit(tokenid.toString(), time.toString())
+})
+
+contract.on('BattleStart', (tokenid1, tokenid2, time) => {
+    battleStart(tokenid1.toString(), tokenid2.toString(), time.toString())
+})
+
+contract.on('BattleVote', (tokenid, voter, time) => {
+    battleVote(tokenid.toString(), voter.toLowerCase(), time.toString())
+})
+
+contract.on('BattleEnd', (tokenid1, tokenid2, typa, reward, time) => {
+    battleEnd(tokenid1.toString(), tokenid2.toString(), typa.toString(), reward.toString(), time.toString())
 })
 
 console.log('Listening chain events')

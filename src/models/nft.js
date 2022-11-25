@@ -31,7 +31,7 @@ const nft = mongoose.Schema(
             type: Number,
             default: 0
         },
-        amount: {
+        value: {
             type: Number,
             default: 0
         },
@@ -52,19 +52,13 @@ const nft = mongoose.Schema(
             type: String,
             default: null
         },
-        // current bet info
-        upVoters:{
-            type: [String]
-        },
-        downVoters: {
-            type: [String]
-        },
-        currentAmount: {
+        // battle info
+        votes: [String],
+        pool: {
             type: Number,
             default: 0
         },
-        
-        round: {
+        fight: {
             type: Number,
             default: 0
         },
@@ -80,23 +74,27 @@ const nft = mongoose.Schema(
             type: Number,
         },
         // nft status
-        onSale: {
+        listed: {
             type: Boolean,
             default: false
         },
-        inGame: {
+        battling: {
             type: Boolean,
             default: false
         },
-        isVerified: {
+        inLobby: {
             type: Boolean,
             default: false
         },
-        isMinted: {
+        verified: {
             type: Boolean,
             default: false
         },
-        isActive: {
+        minted: {
+            type: Boolean,
+            default: false
+        },
+        active: {
             type: Boolean,
             default: true
         }

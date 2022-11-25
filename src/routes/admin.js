@@ -21,7 +21,7 @@ router.get('/:address', addressVli, adminCheck, (req, res) => {
 })
 
 router.get('/:address/pendingnfts', addressVli, adminCheck, async (req, res) => {
-    const nfts = await NFT.find({ isVerified: false })
+    const nfts = await NFT.find({ verified: false })
     success(res, 'ok', nfts)
 })
 
@@ -36,7 +36,7 @@ router.post('/verify', addressVli, adminCheck, async (req, res) => {
     const id = req.body.id
     const nft = await NFT.findOneAndUpdate(
         { id },
-        { $set: { isVerified: true }}
+        { $set: { verified: true }}
     )
 
     await sendMail(nft.owner, `Your NFT ${nft.name} is now verified ! Mint it NOW !`)
