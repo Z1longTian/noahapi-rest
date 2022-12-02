@@ -2,7 +2,7 @@ import express from "express"
 import { addrVli, nftExist, adminVli } from '../middlewares/index.js'
 import { success } from "../utils/response.js"
 import NFT from "../models/nft.js"
-import { sendMail } from '../controllers/account.js'
+import { sendMail } from '../controllers/mail.js'
 
 
 const route = 'admin'

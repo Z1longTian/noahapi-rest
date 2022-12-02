@@ -15,8 +15,8 @@ const account = mongoose.Schema(
             default: true
         },
         likes: [Number], // [tokenids],
-        mails: [Object] // { mailid, content, date, read }
-    },
+        socketid: String
+     },
     {
         timestamps: true
     }

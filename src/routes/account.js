@@ -5,6 +5,8 @@ import { getSysBalance } from "../contracts/nft.js"
 import Account from "../models/account.js"
 import NFT from "../models/nft.js"
 import Activity from "../models/activity.js"
+import Mail from "../models/mail.js"
+import { sendMail } from "../controllers/mail.js"
 
 const route = 'account'
 const router = express.Router()
@@ -24,7 +26,7 @@ const nnameVli = (length) => {
 const nicknameVli = inpVli('nickname', nnameVli(20)) // nickname vlidation
 
 //////////////////////////////////////////////////////////////
-//                     GETs
+//                         GETs                             //
 //////////////////////////////////////////////////////////////
 
 /**
@@ -72,6 +74,7 @@ router.get('/:address', addressVli, accountExist, activeAcc, async (req, res) =>
         activity.nft = activity.nft[0]
     })
     account.activities = activities
+    account.mails = await Mail.find({address})
     const nfts = (await NFT.find({owner: address})).filter((nft) => nft.active)
     account.nfts = {
         mynfts: nfts.filter((nft) => nft.minted),
@@ -107,11 +110,13 @@ router.post('/connect', addressVli, async (req, res) => {
         await Account.create({
             address: address
         })
+        await sendMail(address, 'Welcome to Noah')
     } else{
         if(!account.active) {
             failure(res, resMsg.accBanned(address))
             return
         }
+        await sendMail(address, 'You have logged in successfully')
     }
     success(res, 'ok', {})
 })
@@ -146,58 +151,6 @@ router.post('/unlike', addressVli, accountExist, activeAcc, nftExisted, activeNf
     success(res, 'ok', {})
 })
 
-/**
- * mark a mail as read for a user
- */
-router.post('/markread', addressVli, accountExist, activeAcc, async (req, res) => {
-    const address = req.address
-    const mailid = req.body.mailid
-    await Account.findOneAndUpdate(
-        { address },
-        { $set: { 'mails.$[element].read': true }},
-        { arrayFilters:[ {'element.id': mailid}]}
-    )
-    success(res, 'ok', {})
-})
-
-/**
- * mark all unread mails as read for a user
- */
-router.post('/markallread', addressVli, accountExist, activeAcc, async (req, res) => {
-    const address = req.address
-    await Account.findOneAndUpdate(
-        { address },
-        { $set: {'mails.$[element].read': true}},
-        { arrayFilters: [{'element.read': false}]}
-    )
-    success(res, 'ok', {})
-})
-
-/**
- * delete a mail for a user
- */
-router.post('/deletemail', addressVli, accountExist, activeAcc, async (req, res) => {
-    const address = req.address
-    const mailid = req.body.mailid
-    await Account.findOneAndUpdate(
-        { address },
-        { $pull: { mails: { id: mailid } } }
-    )
-    success(res, 'ok', {})
-})
-
-/**
- * delete all read mails for a user
- */
-router.post('/deleteallread', addressVli, accountExist, activeAcc, async (req, res) => {
-    const address = req.address
-    await Account.findOneAndUpdate(
-        { address },
-        { $pull: { mails: { read: true}}}
-    )
-    success(res, 'ok', {})
-})
-
 //////////////////////////////////////////////////////////////
 //                      PUTs
 //////////////////////////////////////////////////////////////
@@ -211,6 +164,7 @@ router.put('/updname', addressVli, nicknameVli, accountExist, activeAcc, async (
     )
     success(res, 'ok', {})
 })
+
 
 export default {
     route,

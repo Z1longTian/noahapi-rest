@@ -1,7 +1,7 @@
 import NFT from "../models/nft.js"
 import { getNftInfo, utils, configs, updateConfigs } from "../contracts/nft.js"
 import { recordActivity } from "./activity.js"
-import { sendMail } from './account.js'
+import { sendMail } from './mail.js'
 import Trade from "../models/trade.js"
 import Account from '../models/account.js'
 import Battle from "../models/battle.js"
