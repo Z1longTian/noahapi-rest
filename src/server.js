@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: false }))
 
 // error handler and api protection
 app.use(errHandler)
-// app.use(apiProtect) // should be uncommented in production
+app.use(apiProtect) // should be uncommented in production
 
 // register all routes
 for (const route of routes){
