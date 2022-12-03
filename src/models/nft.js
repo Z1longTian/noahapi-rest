@@ -32,8 +32,8 @@ const nft = mongoose.Schema(
             default: 0
         },
         value: {
-            type: Number,
-            default: 0
+            type: String,
+            default: '0'
         },
         level: {
             type: Number,
@@ -67,8 +67,8 @@ const nft = mongoose.Schema(
         },
         // current trade info
         price: {
-            type: Number,
-            default: null
+            type: String,
+            default: '0'
         },
         tradeStart: {
             type: Number,
