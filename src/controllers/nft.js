@@ -154,11 +154,11 @@ const battleStart = async (tokenid1, tokenid2, time) => {
     const tokenids = [tokenid1, tokenid2].sort()
     const nft1 = await NFT.findOneAndUpdate(
         { tokenid: tokenid1 },
-        { $set: { battling: true, start: time}, $inc: { fight: 1 }}
+        { $set: { battling: true, start: time, inLobby: false}, $inc: { fight: 1 }}
     )
     const nft2 = await NFT.findOneAndUpdate(
         { tokenid: tokenid2 },
-        { $set: { battling: true, start: time}, $inc: { fight: 1 }}
+        { $set: { battling: true, start: time, inLobby: false}, $inc: { fight: 1 }}
     )
     Battle.create({
         tokenids,

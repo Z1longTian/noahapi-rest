@@ -14,11 +14,12 @@ const account = mongoose.Schema(
             type: Boolean,
             default: true
         },
+        join: { // join time
+            type: Number,
+            default: Date.now()
+        },
         likes: [Number], // [tokenids],
-        socketid: String
-     },
-    {
-        timestamps: true
+        
     }
 )
 

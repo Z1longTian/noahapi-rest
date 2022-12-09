@@ -46,6 +46,26 @@ router.get('/:tokenid1/:tokenid2', nft1Exist, nft2Exist, nft1Active, nft2Active,
     failure(res, 'No Battle found')
 })
 
+/**
+ * get all happening battles
+ */
+router.get('/', async (req, res) => {
+    const battles = await Battle.aggregate([
+        {
+            $match: { finished: false }
+        },
+        {
+            $lookup: {
+                from: NFT.collection.name,
+                localField: 'tokenids',
+                foreignField: 'tokenid',
+                as: 'nfts'
+            }
+        }
+    ])
+    success(res, 'ok', battles)
+})
+
 export default {
     route,
     router

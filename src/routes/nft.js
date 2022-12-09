@@ -165,7 +165,7 @@ router.post('/search', async (req, res) => {
     const start = (page - 1) * page_size // start index
     const end = start + page_size // end index
     const typeFilter = {
-        '0': {minted: true}, '1': {listed: true}, '2': {battling: true}
+        '0': {minted: true}, '1': {listed: true}, '2': {battling: true}, '3': {inLobby: true}
     }
     const keyFilter = () => {
         const reg = new RegExp(key)
@@ -186,10 +186,15 @@ router.post('/search', async (req, res) => {
 
         if(sort == 3) return { price: -1 }
 
+        if(sort == 4) return { value: 1 } 
+        
+        if(sort == 5) return { value: -1 }
+
         return {}
     }
 
     const filter = {
+        active: true,
         ...typeFilter[type],
         ...keyFilter()
     }
