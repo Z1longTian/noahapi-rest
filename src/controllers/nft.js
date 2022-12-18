@@ -219,12 +219,12 @@ const battleEnd = async (tokenid1, tokenid2, typa, reward, time) => {
     const tokenids = [tokenid1, tokenid2].sort()
     const nft1 = await NFT.findOneAndUpdate(
         { tokenid: tokenid1 },
-        { $set: { battling: false, inLobby: false, votes: []}}
+        { $set: { battling: false, votes: []}}
     )
 
     const nft2 = await NFT.findOneAndUpdate(
         { tokenid: tokenid2 },
-        { $set: { battling: false, inLobby: false, votes: []}}
+        { $set: { battling: false, votes: []}}
     )
     const votes = {}
     votes[tokenid1] = nft1.votes
