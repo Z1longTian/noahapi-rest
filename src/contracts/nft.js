@@ -2,6 +2,7 @@ import { ethers } from 'ethers'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
+import { logger } from '../loggers/winston.js'
 
 dotenv.config()
 // abi
@@ -10,8 +11,19 @@ const abi = JSON.parse(fs.readFileSync(abiPath, 'utf-8'))
 
 // nft contract address
 const address = process.env.NFT_CONTRACT.toLowerCase()
+
 const provider = new ethers.providers.JsonRpcProvider(process.env.NODE_PROVIDER)
+
 const contract = new ethers.Contract(address, abi, provider)
+
+let configs
+try {
+    configs = formatObj(await contract.functions.configs())
+}catch(err) {
+    logger.error(err)
+}
+
+const admin = (await contract.functions.getOwner())[0].toLowerCase()
 
 const getSysBalance = async (address) => (await contract.functions.getSysBalance(address)).toString()
 
@@ -19,11 +31,7 @@ const getNftInfo = async (tokenid) => formatObj(await contract.functions.nftOf(t
 
 const getUpgradeRequirements = async (tokenid) => formatObj(await contract.functions.upgradeRequirements(tokenid))
 
-let configs = formatObj(await contract.functions.configs())
-
 const updateConfigs = async () => configs = formatObj(await contract.functions.configs())
-
-const admin = (await contract.functions.getOwner())[0].toLowerCase()
 
 const utils = ethers.utils
 

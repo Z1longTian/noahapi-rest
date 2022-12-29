@@ -9,6 +9,8 @@ import { init } from './controllers/platform.js'
 import { errHandler, apiProtect } from './middlewares/index.js'
 import { routes } from './utils/importRoutes.js' // routes
 import { initIO } from './socket.js'
+import { logger } from './loggers/winston.js'
+import morganMiddleware from './loggers/morgan.js'
 
 dotenv.config()
 
@@ -27,6 +29,10 @@ const io = new Server(server, {
 global.io = io 
 // CORS - enable cross origin resources
 app.use(cors())
+
+// register logger
+app.use(morganMiddleware)
+app.logger = logger
 
 // body parser
 app.use(express.json())

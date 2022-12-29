@@ -17,6 +17,8 @@ const apiProtect = (req, res, next) => {
 
 // error handlers
 const errHandler = (err, req, res, next) => {
+    const logger = req.app.logger
+    logger.error(err)
     const code = res.statusCode ? res.statusCode : 500
 
     res.status(500).json({
@@ -89,7 +91,7 @@ const inpVli = (field, vliFn) => {
 // admin validation
 const adminVli = (field) => {
     return async (req, res, next) => {
-        const address = req.body[field] || req.params[field]
+        const address = req[field]
         if(!isAdmin(address)){
             failure(res, resMsg.unauthorized)
             return

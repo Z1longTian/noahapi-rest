@@ -2,7 +2,6 @@ import express from "express"
 import Mail from "../models/mail.js"
 import { addrVli, accExist, activeUser } from '../middlewares/index.js'
 import { success } from "../utils/response.js"
-import { sendMail } from "../controllers/mail.js"
 
 const route = 'mail'
 const router = express.Router()
@@ -71,12 +70,6 @@ router.delete('/deleteread', addressVli, accountExist, activeAcc, async (req, re
     success(res, 'ok', {})
 })
 
-// test for sockets
-router.post('/to', async(req, res) => {
-    const address = req.body.address.toLowerCase()
-    await sendMail(address, 'this is a test')
-    success(res, 'ok', {})
-})
 export default {
     route, 
     router

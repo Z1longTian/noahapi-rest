@@ -90,7 +90,7 @@ router.get('/:address', addressVli, accountExist, activeAcc, async (req, res) =>
 /**
  * get system balance of the address - TESTED
  */
-router.get('/:address/balance', addressVli, accountExist, activeAcc, async (req, res) => {
+router.get('/:address/balance', addressVli, async (req, res) => {
     success(res, 'ok', await getSysBalance(req.address))
 })
 
@@ -102,6 +102,7 @@ router.get('/:address/balance', addressVli, accountExist, activeAcc, async (req,
  * connect user - TESTED
  */
 router.post('/connect', addressVli, async (req, res) => {
+    const logger = req.app.logger
     const address = req.address
     const account = await Account.findOne({address})
     // if account not found
@@ -111,13 +112,16 @@ router.post('/connect', addressVli, async (req, res) => {
             address: address
         })
         await sendMail(address, 'Welcome to Noah')
+        logger.user(`register ${address}`)
     } else{
         if(!account.active) {
             failure(res, resMsg.accBanned(address))
             return
         }
         await sendMail(address, 'You have logged in successfully')
+        logger.user(`login ${address}`)
     }
+    
     success(res, 'ok', {})
 })
 
@@ -125,6 +129,7 @@ router.post('/connect', addressVli, async (req, res) => {
  *  like an nft
  */
 router.post('/like', addressVli, accountExist, activeAcc, nftExisted, activeNft, async (req, res) => {
+    const logger = req.app.logger
     const address = req.address
     const tokenid = req.tokenid
     // didn't add check of existance of tokenid in likes
@@ -133,6 +138,7 @@ router.post('/like', addressVli, accountExist, activeAcc, nftExisted, activeNft,
         { address },
         { $addToSet: { likes: tokenid } }
     )
+    logger.user(`like ${address} ${tokenid}`)
     success(res, 'ok', {})
 })
 
@@ -140,6 +146,7 @@ router.post('/like', addressVli, accountExist, activeAcc, nftExisted, activeNft,
  * unlike an nft
  */
 router.post('/unlike', addressVli, accountExist, activeAcc, nftExisted, activeNft, async (req, res) => {
+    const logger = req.app.logger
     const address = req.address
     const tokenid = req.tokenid
     // didn't add check of existance of tokenid in likes
@@ -148,6 +155,7 @@ router.post('/unlike', addressVli, accountExist, activeAcc, nftExisted, activeNf
         { address },
         { $pull: { likes: tokenid } }
     )
+    logger.user(`unlike ${address} ${tokenid}`)
     success(res, 'ok', {})
 })
 
@@ -156,12 +164,14 @@ router.post('/unlike', addressVli, accountExist, activeAcc, nftExisted, activeNf
 //////////////////////////////////////////////////////////////
 
 router.put('/updname', addressVli, nicknameVli, accountExist, activeAcc, async (req, res) => {
+    const logger = req.app.logger
     const address = req.address
     const nickname = req.body.nickname
-    await Account.findOneAndUpdate(
+    const account = await Account.findOneAndUpdate(
         { address },
         { $set: { name: nickname }}
     )
+    logger.user(`edit-name ${address} from ${account.name} to ${nickname}`)
     success(res, 'ok', {})
 })
 

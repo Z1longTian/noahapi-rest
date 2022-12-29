@@ -140,10 +140,11 @@ router.get('/:tokenid', nftExisted, activeNft,  async (req, res) => {
  *      - cid
 */
 router.post('/create', addressVli, accountExist, activeAcc, nameVli, descVli, cidExist, async (req, res) => {
+    const logger = req.app.logger
     const address = req.address
     const { name, description, cid } = req.body
 
-    await NFT.create({
+    const nft = await NFT.create({
         creator: address,
         owner: address,
         name,
@@ -152,6 +153,7 @@ router.post('/create', addressVli, accountExist, activeAcc, nameVli, descVli, ci
         ipfsURI: ipfsURI(cid),
         httpURL: httpURL(cid)
     })
+    logger.user(`create id:${nft.id}`)
     success(res, 'NFT created', {})
 })
 
@@ -212,12 +214,14 @@ router.post('/search', async (req, res) => {
 * update name of nft
 */
 router.put('/updname', nftExisted, activeNft, nameVli, async (req, res) => {
+    const logger = req.app.logger
     const tokenid = req.tokenid
     const name = req.body.name
     await NFT.findOneAndUpdate(
         { tokenid },
         { $set: { name }}
     )
+    logger.user(`edit-nft-name NFT#${tokenid} ${name}`)
     success(res, 'ok', {})
 })
 
@@ -225,12 +229,14 @@ router.put('/updname', nftExisted, activeNft, nameVli, async (req, res) => {
 * update description of nft
 */
 router.put('/upddesc', nftExisted, activeNft, descVli, async (req, res) => {
+    const logger = req.app.logger
     const tokenid = req.tokenid
     const description = req.body.description
     await NFT.findOneAndUpdate(
         { tokenid },
         { $set: { description }}
     )
+    logger.user(`edit-nft-desc NFT#${tokenid} ${description}`)
     success(res, 'ok', {})
 })
 

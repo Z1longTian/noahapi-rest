@@ -5,8 +5,7 @@ import { sendMail } from './mail.js'
 import Trade from "../models/trade.js"
 import Account from '../models/account.js'
 import Battle from "../models/battle.js"
-import crypto from 'crypto'
-
+import { logger } from "../loggers/winston.js"
 // get nft data from chain and sync it to nft in database
 const syncNFT = async (tokenid) => {
     const nft = await getNftInfo(tokenid)
@@ -52,6 +51,7 @@ const mint = async (address, tokenid, id, time) => {
     //     round: null,
     //     date: time
     // })
+    logger.user(`mint ${id} => ${tokenid}`)
 }
 
 const update = async () => {
@@ -75,6 +75,7 @@ const tradeList = async (seller, tokenid, price, time) => {
     //     round: null,
     //     date: time
     // })
+    logger.user(`list account@${seller} NFT#${tokenid} ${utils.formatEther(price)}bnb`)
 }
 // unlist 
 const tradeUnlist = async (seller, tokenid, time) => {
@@ -93,6 +94,7 @@ const tradeUnlist = async (seller, tokenid, time) => {
     //     round: null,
     //     date: time,
     // })
+    logger.user(`unlist account@${seller} NFT#${tokenid}`)
 }
 
 const tradePurchase = async (seller, buyer, tokenid, price, time) => {
@@ -103,6 +105,7 @@ const tradePurchase = async (seller, buyer, tokenid, price, time) => {
 
     // record the trade info
     Trade.create({ seller, buyer, price, tokenid, start: nft.tradeStart, end: time})
+    logger.user(`purchase seller@${seller} buyer@${buyer} NFT#${tokenid} at ${utils.formatEther(price)}bnb`)
 
     // record seller activity
     // recordActivity({
@@ -141,6 +144,8 @@ const lobbyJoin = async (tokenid, time) => {
         { tokenid },
         { $set: { inLobby: true } }
     )
+    logger.user(`join NFT#${tokenid}`)
+
 }
 
 const lobbyExit = async (tokenid, time) => {
@@ -148,6 +153,7 @@ const lobbyExit = async (tokenid, time) => {
         { tokenid },
         { $set: { inLobby: false } }
     )
+    logger.user(`exit NFT#${tokenid}`)
 }
 
 const battleStart = async (tokenid1, tokenid2, time) => {
@@ -166,6 +172,7 @@ const battleStart = async (tokenid1, tokenid2, time) => {
         tokenid2,
         start: time
     })
+    logger.user(`battle NFT#${tokenid1} NFT#${tokenid2}`)
 
     // recordActivity({
     //     address: nft1.owner,
@@ -196,7 +203,7 @@ const battleVote = async (tokenid, voter, time) => {
         { tokenid },
         { $push: {votes: voter}}
     )
-
+    logger.user(`vote voter@${voter} NFT#${tokenid}`)
     // recordActivity({
     //     address: voter,
     //     activity: 'Vote',
@@ -238,6 +245,7 @@ const battleEnd = async (tokenid1, tokenid2, typa, reward, time) => {
             finished: true
         }}
     )
+    logger.user(`end NFT#${tokenid1} NFT#${tokenid2} winner:${typa}`)
 
     // recordActivity({
     //     address: nft.owner,
@@ -295,6 +303,8 @@ const upgrade = async (tokenid) => {
         { tokenid },
         { $inc: { level: 1 }}
     )
+    logger.user(`upgrade NFT#${tokenid}`)
+
 
     // recordActivity({
     //     address: nft.owner,
@@ -309,6 +319,7 @@ const upgrade = async (tokenid) => {
 }
 
 const valueTransfer = async (tokenid, dieTokenid) => {
+    logger.user(`transfer from NFT#${dieTokenid} to NFT#${tokenid}`)
     // later record activity
     
     // recordActivity({
@@ -325,7 +336,7 @@ const valueTransfer = async (tokenid, dieTokenid) => {
 
 // todo delete nft
 const burn = async (tokenid) => {
-
+    logger.user(`burn NFT#${tokenid}`)
 }
 
 export {

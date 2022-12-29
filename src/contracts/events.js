@@ -1,6 +1,7 @@
 import { mint, upgrade, valueTransfer, burn, tradeList, tradeUnlist, tradePurchase, 
 lobbyJoin, lobbyExit, battleStart, battleVote, battleEnd, update } from '../controllers/nft.js'
 import { contract } from './nft.js'
+import { logger } from '../loggers/winston.js'
 
 // events
 contract.on('Mint', (address, tokenid, id, time) => {
@@ -57,6 +58,6 @@ contract.on('BattleEnd', (tokenid1, tokenid2, typa, reward, time) => {
     battleEnd(tokenid1.toString(), tokenid2.toString(), typa.toString(), reward.toString(), time.toString())
 })
 
-console.log('Listening chain events')
+logger.info('Listening to chain events')
 
 export {}
