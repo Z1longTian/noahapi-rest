@@ -24,7 +24,7 @@ const nft = mongoose.Schema(
             required: true
         },
         tokenid: {
-            type: String,
+            type: Number,
             default: 0
         },
         views: {

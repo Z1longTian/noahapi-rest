@@ -176,7 +176,7 @@ router.post('/search', async (req, res) => {
     const keyFilter = () => {
         const reg = new RegExp(key)
         // search fields
-        const fields = ['name', 'description', 'owner', 'creator', 'tokenid']
+        const fields = ['name', 'description', 'owner', 'creator']
         return { $or: fields.map(field => {
             const query = {}
             query[field] = reg
