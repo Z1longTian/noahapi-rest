@@ -47,8 +47,7 @@ router.post('/verify', addressVli, adminCheck, async (req, res) => {
     logger.admin(`verify ${id}`)
     success(res, 'ok', {})
 })
-
-// TODOs 
+ 
 router.post('/decline', addressVli, adminCheck, async (req, res) => {
     const logger = req.app.logger
     const id = req.body.id
@@ -58,6 +57,32 @@ router.post('/decline', addressVli, adminCheck, async (req, res) => {
     Because, ${declineMsg}. Please try again !`)
 
     logger.admin(`decline ${id} ${declineMsg}`)
+    success(res, 'ok', {})
+})
+
+router.post('/activiate', addressVli, adminCheck, nftExisted, async (req, res) => {
+    const logger = req.app.logger
+    const tokenid = req.tokenid
+    const nft = await NFT.findOneAndUpdate(
+        { tokenid },
+        { $set: { active: true }}
+    )
+
+    await sendMail(nft.owner, `Your NFT ${nft.name} is now banned.`)
+    logger.admin(`ban NFT#${tokenid}`)
+    success(res, 'ok', {})
+})
+
+router.post('/inactiviate', addressVli, adminCheck, nftExisted, async (req, res) => {
+    const logger = req.app.logger
+    const tokenid = req.tokenid
+    const nft = await NFT.findOneAndUpdate(
+        { tokenid },
+        { $set: { active: false }}
+    )
+
+    await sendMail(nft.owner, `Your NFT ${nft.name} is now unbanned.`)
+    logger.admin(`unban NFT#${tokenid}`)
     success(res, 'ok', {})
 })
 

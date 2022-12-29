@@ -167,12 +167,16 @@ router.post('/search', async (req, res) => {
     const start = (page - 1) * page_size // start index
     const end = start + page_size // end index
     const typeFilter = {
-        '0': {minted: true}, '1': {listed: true}, '2': {battling: true}, '3': {inLobby: true}
+        '0': {minted: true}, 
+        '1': {listed: true}, 
+        '2': {battling: true}, 
+        '3': {inLobby: true}, 
+        '4': {active: false}
     }
     const keyFilter = () => {
         const reg = new RegExp(key)
         // search fields
-        const fields = ['name', 'description', 'owner', 'creator']
+        const fields = ['name', 'description', 'owner', 'creator', 'tokenid']
         return { $or: fields.map(field => {
             const query = {}
             query[field] = reg
@@ -180,9 +184,9 @@ router.post('/search', async (req, res) => {
         })}
     }
     const sortFilter = () => {
-        if(sort == 0) return { mintTime: 1}
+        if(sort == 0) return { tokenid: 1}
         
-        if(sort == 1) return { mintTime: -1}
+        if(sort == 1) return { tokenid: -1}
         
         if(sort == 2) return { price: 1 }
 
@@ -191,6 +195,8 @@ router.post('/search', async (req, res) => {
         if(sort == 4) return { value: 1 } 
         
         if(sort == 5) return { value: -1 }
+        if(sort == 6) return { views: -1 }
+        if(sort == 6) return { views: 1 }
 
         return {}
     }
