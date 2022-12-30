@@ -174,14 +174,19 @@ router.post('/search', async (req, res) => {
         '4': {active: false}
     }
     const keyFilter = () => {
-        const reg = new RegExp(key)
-        // search fields
-        const fields = ['name', 'description', 'owner', 'creator']
-        return { $or: fields.map(field => {
-            const query = {}
-            query[field] = reg
-            return query
-        })}
+        if(isNaN(key)) {
+            const reg = new RegExp(key, 'i')
+            const fields = ['name', 'owner', 'creator']
+            return { $or: fields.map(field => {
+                const query = {}
+                query[field] = reg
+                return query
+            })}
+        }
+        key = Number(key)
+        return {
+            tokenid: key
+        }
     }
     const sortFilter = () => {
         if(sort == 0) return { tokenid: 1}
