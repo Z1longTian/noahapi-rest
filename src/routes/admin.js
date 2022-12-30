@@ -2,6 +2,7 @@ import express from "express"
 import { addrVli, nftExist, adminVli } from '../middlewares/index.js'
 import { success } from "../utils/response.js"
 import NFT from "../models/nft.js"
+import Account from '../models/account.js'
 import { sendMail } from '../controllers/mail.js'
 import { promises as fs } from 'fs'
 import path from 'path'
@@ -83,6 +84,28 @@ router.post('/inactiviate', addressVli, adminCheck, nftExisted, async (req, res)
 
     await sendMail(nft.owner, `Your NFT ${nft.name} is now unbanned.`)
     logger.admin(`unban NFT#${tokenid}`)
+    success(res, 'ok', {})
+})
+
+router.post('/ban', addressVli, adminCheck, addrVli('targetAddress'), async (req, res) => {
+    const logger = req.app.logger
+    const targetAddress = req.targetAddress
+    await Account.findOneAndUpdate(
+        {address: targetAddress},
+        { $set: { active: false }}
+    )
+    logger.admin(`ban Address#${targetAddress}`)
+    success(res, 'ok', {})
+})
+
+router.post('/unban', addressVli, adminCheck, addrVli('targetAddress'), async (req, res) => {
+    const logger = req.app.logger
+    const targetAddress = req.targetAddress
+    await Account.findOneAndUpdate(
+        {address: targetAddress},
+        { $set: { active: true }}
+    )
+    logger.admin(`unban Address#${targetAddress}`)
     success(res, 'ok', {})
 })
 

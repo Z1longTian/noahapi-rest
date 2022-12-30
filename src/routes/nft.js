@@ -165,7 +165,6 @@ router.post('/search', async (req, res) => {
     page = parseInt(page)
     page_size = parseInt(page_size)
     const start = (page - 1) * page_size // start index
-    const end = start + page_size // end index
     const typeFilter = {
         '0': {minted: true}, 
         '1': {listed: true}, 
@@ -174,7 +173,7 @@ router.post('/search', async (req, res) => {
         '4': {active: false}
     }
     const keyFilter = () => {
-        if(isNaN(key)) {
+        if(isNaN(key) || key == '') {
             const reg = new RegExp(key, 'i')
             const fields = ['name', 'owner', 'creator']
             return { $or: fields.map(field => {
@@ -183,7 +182,7 @@ router.post('/search', async (req, res) => {
                 return query
             })}
         }
-        key = Number(key)
+        key = parseInt(key)
         return {
             tokenid: key
         }
@@ -212,9 +211,16 @@ router.post('/search', async (req, res) => {
         ...keyFilter()
     }
 
-    const nfts = await NFT.find(filter).sort(sortFilter()).skip(start).limit(end)
+    const nfts = await NFT.find(filter).sort(sortFilter()).skip(start).limit(page_size)
     // for pagination
     success(res, 'ok', nfts)
+})
+
+/**
+ * get total number of accounts
+ */
+router.post('/count', async (req, res) => {
+    success(res, 'ok', await NFT.count())
 })
 
 //////////////////////////////////////////////////////////////

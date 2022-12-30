@@ -109,7 +109,8 @@ router.post('/connect', addressVli, async (req, res) => {
     if(!account){
         // create a new account
         await Account.create({
-            address: address
+            address: address,
+            join: Date.now()
         })
         await sendMail(address, 'Welcome to Noah')
         logger.user(`register ${address}`)
@@ -159,6 +160,46 @@ router.post('/unlike', addressVli, accountExist, activeAcc, nftExisted, activeNf
     success(res, 'ok', {})
 })
 
+/**
+ * get total number of accounts
+ */
+router.post('/count', async (req, res) => {
+    success(res, 'ok', await Account.count())
+})
+
+router.post('/search', async(req, res) => {
+    let {page, page_size, type, sort, key} = req.body
+    page = parseInt(page)
+    page_size = parseInt(page_size)
+    const start = (page - 1) * page_size
+    const types = {
+        '0' : {active: true},
+        '1' : {active: false}
+    }
+    const keys = () => {
+        const reg = new RegExp(key, 'i')
+        const fields = ['name', 'address']
+        return { $or: fields.map( field => {
+            const query = {}
+            query[field] = reg
+            return query
+        })}
+    }
+    const sorts = () => {
+        if(sort == 0) return { join: -1}
+        
+        if(sort == 1) return { join: 1}
+        
+        return {}
+    }
+    const filter = {
+        ...types[type],
+        ...keys()
+    }
+    const accounts = await Account.find(filter).sort(sorts()).skip(start).limit(page_size)
+    success(res, 'ok', accounts)
+})
+
 //////////////////////////////////////////////////////////////
 //                      PUTs
 //////////////////////////////////////////////////////////////
@@ -174,6 +215,7 @@ router.put('/updname', addressVli, nicknameVli, accountExist, activeAcc, async (
     logger.user(`edit-name ${address} from ${account.name} to ${nickname}`)
     success(res, 'ok', {})
 })
+
 
 
 export default {

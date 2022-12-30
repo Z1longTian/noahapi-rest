@@ -16,7 +16,6 @@ const account = mongoose.Schema(
         },
         join: { // join time
             type: Number,
-            default: Date.now()
         },
         likes: [Number], // [tokenids],
         
