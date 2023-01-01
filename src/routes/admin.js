@@ -57,7 +57,7 @@ router.post('/pendingnfts', addressVli, adminCheck, async (req, res) => {
     }
     const nfts = await NFT.find(filter).sort(sortFilter()).skip(start).limit(page_size)
     // for pagination
-    success(res, 'ok', nfts)
+    success(res, 'ok', {nfts, count: await NFT.count({verified: false})})
 })
 
 //////////////////////////////////////////////////////////////
