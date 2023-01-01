@@ -164,7 +164,7 @@ router.post('/unlike', addressVli, accountExist, activeAcc, nftExisted, activeNf
  * get total number of accounts
  */
 router.post('/count', async (req, res) => {
-    success(res, 'ok', await Account.count())
+    success(res, 'ok', await Account.count({active: true}))
 })
 
 router.post('/search', async(req, res) => {

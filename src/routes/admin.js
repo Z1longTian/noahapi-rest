@@ -24,8 +24,39 @@ router.get('/:address', addressVli, adminCheck, (req, res) => {
     success(res, 'ok', {})
 })
 
-router.get('/:address/pendingnfts', addressVli, adminCheck, async (req, res) => {
-    const nfts = await NFT.find({ verified: false })
+router.post('/pendingnfts', addressVli, adminCheck, async (req, res) => {
+    let {page, page_size, sort, key} = req.body
+    page = parseInt(page)
+    page_size = parseInt(page_size)
+    const start = (page - 1) * page_size
+    const keyFilter = () => {
+        if(isNaN(key) || key == '') {
+            const reg = new RegExp(key, 'i')
+            const fields = ['name', 'creator']
+            return { $or: fields.map(field => {
+                const query = {}
+                query[field] = reg
+                return query
+            })}
+        }
+        key = parseInt(key)
+        return {
+            id: key
+        }
+    }
+    const sortFilter = () => {
+        if(sort == 0) return { id: 1}
+        
+        if(sort == 1) return { id: -1}
+
+        return {}
+    }
+    const filter = {
+        verified: false,
+        ...keyFilter()
+    }
+    const nfts = await NFT.find(filter).sort(sortFilter()).skip(start).limit(page_size)
+    // for pagination
     success(res, 'ok', nfts)
 })
 

@@ -220,7 +220,7 @@ router.post('/search', async (req, res) => {
  * get total number of accounts
  */
 router.post('/count', async (req, res) => {
-    success(res, 'ok', await NFT.count())
+    success(res, 'ok', await NFT.count({active: true}))
 })
 
 //////////////////////////////////////////////////////////////
