@@ -173,9 +173,9 @@ router.post('/search', async (req, res) => {
         '4': {active: false}
     }
     const keyFilter = () => {
-        if(isNaN(key) || key == '') {
+        if(!isNumeric(key) || key == '') {
             const reg = new RegExp(key, 'i')
-            const fields = ['name', 'owner', 'creator']
+            const fields = ['name', 'owner']
             return { $or: fields.map(field => {
                 const query = {}
                 query[field] = reg
@@ -257,6 +257,9 @@ router.put('/upddesc', nftExisted, activeNft, descVli, async (req, res) => {
     success(res, 'ok', {})
 })
 
+function isNumeric(str) {
+    return /^\d+$/.test(str)
+}
 
 export default {
     route,
