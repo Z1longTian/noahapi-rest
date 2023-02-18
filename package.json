@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
-  "main": "noahrestapi.js",
+  "main": "index.js",
   "scripts": {
-    "dev": "nodemon noahrestapi.js",
-    "start": "pm2 start noahrestapi.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
