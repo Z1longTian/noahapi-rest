@@ -45,35 +45,6 @@ router.get('/:address', addressVli, accountExist, activeAcc, async (req, res) =>
             }}
         ]
     ))[0]
-    const activities = await Activity.aggregate(
-        [
-            { $match: {address} },
-            { $lookup: {
-                from: Account.collection.name,
-                localField: 'from',
-                foreignField: 'address',
-                as: 'from'
-            }},
-            { $lookup: {
-                from: Account.collection.name,
-                localField: 'to',
-                foreignField: 'address',
-                as: 'to'
-            }},
-            { $lookup: {
-                from: NFT.collection.name,
-                localField: 'nft',
-                foreignField: 'tokenid',
-                as: 'nft'
-            }}
-        ]
-    ).sort({date: -1})
-    activities.forEach(activity => {
-        if(activity.from.length === 0) activity.from = null
-        if(activity.to.length === 0) activity.to = null
-        activity.nft = activity.nft[0]
-    })
-    account.activities = activities
     account.mails = await Mail.find({address})
     const nfts = (await NFT.find({owner: address})).filter((nft) => nft.active)
     account.nfts = {
@@ -92,6 +63,13 @@ router.get('/:address', addressVli, accountExist, activeAcc, async (req, res) =>
  */
 router.get('/:address/balance', addressVli, async (req, res) => {
     success(res, 'ok', await getSysBalance(req.address))
+})
+
+/**
+ * get total number of accounts
+ */
+router.get('/count', async (req, res) => {
+    success(res, 'ok', await Account.count({active: true}))
 })
 
 //////////////////////////////////////////////////////////////
@@ -160,13 +138,6 @@ router.post('/unlike', addressVli, accountExist, activeAcc, nftExisted, activeNf
     success(res, 'ok', {})
 })
 
-/**
- * get total number of accounts
- */
-router.post('/count', async (req, res) => {
-    success(res, 'ok', await Account.count({active: true}))
-})
-
 router.post('/search', async(req, res) => {
     let {page, page_size, type, sort, key} = req.body
     page = parseInt(page)
@@ -178,7 +149,7 @@ router.post('/search', async(req, res) => {
     }
     const keys = () => {
         const reg = new RegExp(key, 'i')
-        const fields = ['name', 'address']
+        const fields = ['name']
         return { $or: fields.map( field => {
             const query = {}
             query[field] = reg

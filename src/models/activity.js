@@ -4,11 +4,7 @@ const activity = mongoose.Schema(
     {
         address: String,
         activity: String,
-        from: String,
-        to: String,
-        nft: Number,
-        price: String,
-        round: Number,
+        links: [Object],
         date: Number
     }
 )

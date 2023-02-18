@@ -6,6 +6,7 @@ import Trade from "../models/trade.js"
 import Account from '../models/account.js'
 import Battle from "../models/battle.js"
 import { logger } from "../loggers/winston.js"
+
 // get nft data from chain and sync it to nft in database
 const syncNFT = async (tokenid) => {
     const nft = await getNftInfo(tokenid)
@@ -41,16 +42,18 @@ const mint = async (address, tokenid, id, time) => {
         }}
     )
 
-    // recordActivity({
-    //     address,
-    //     activity: 'Mint',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid,
-    //     price: null,
-    //     round: null,
-    //     date: time
-    // })
+    recordActivity({
+        address,
+        activity: 'Mint',
+        links: [
+            {
+                type: 'nft',
+                value: tokenid,
+                label: ''
+            },
+        ],
+        date: time
+    })
     logger.user(`mint ${id} => ${tokenid}`)
 }
 
@@ -65,16 +68,23 @@ const tradeList = async (seller, tokenid, price, time) => {
         { $set: { price, tradeStart: time, listed: true }}
     )
 
-    // recordActivity({
-    //     address: seller,
-    //     activity: 'Listing',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid,
-    //     price,
-    //     round: null,
-    //     date: time
-    // })
+    recordActivity({
+        address: seller,
+        activity: 'Listing',
+        links: [
+            {
+                type: 'nft',
+                value: tokenid,
+                label: ''
+            },
+            {
+                type: 'price',
+                value: price,
+                label: 'at $'
+            }
+        ],
+        date: time
+    })
     logger.user(`list account@${seller} NFT#${tokenid} ${utils.formatEther(price)}bnb`)
 }
 // unlist 
@@ -84,16 +94,18 @@ const tradeUnlist = async (seller, tokenid, time) => {
         { $set: {listed: false}}
     )
 
-    // recordActivity({
-    //     address: seller,
-    //     activity: 'Unlist',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid,
-    //     price: null,
-    //     round: null,
-    //     date: time,
-    // })
+    recordActivity({
+        address: seller,
+        activity: 'Unlist',
+        links: [
+            {
+                type: 'nft',
+                value: tokenid,
+                label: ''
+            },
+        ],
+        date: time,
+    })
     logger.user(`unlist account@${seller} NFT#${tokenid}`)
 }
 
@@ -108,35 +120,61 @@ const tradePurchase = async (seller, buyer, tokenid, price, time) => {
     logger.user(`purchase seller@${seller} buyer@${buyer} NFT#${tokenid} at ${utils.formatEther(price)}bnb`)
 
     // record seller activity
-    // recordActivity({
-    //     address: seller,
-    //     activity: 'Sold',
-    //     from: null,
-    //     to: buyer,
-    //     nft: tokenid,
-    //     price,
-    //     round: null,
-    //     date: time
-    // })
+    recordActivity({
+        address: seller,
+        activity: 'Sold',
+        from: null,
+        to: buyer,
+        links: [
+            {
+                type: 'nft',
+                value: tokenid,
+                label: ''
+            },
+            {
+                type: 'address',
+                value: buyer,
+                label: 'to $'
+            },
+            {
+                type: 'price',
+                value: price,
+                label: 'at $'
+            }
+        ],
+        date: time
+    })
 
     // buyer activity
-    // recordActivity({
-    //     address: buyer,
-    //     activity: 'Purchase',
-    //     from: seller,
-    //     to: null,
-    //     nft: tokenid,
-    //     price,
-    //     round: null,
-    //     date: time
-    // })
+    recordActivity({
+        address: buyer,
+        activity: 'Purchase',
+        links: [
+            {
+                type: 'nft',
+                value: tokenid,
+                label: ''
+            },
+            {
+                type: 'address',
+                value: seller,
+                label: 'from $'
+            },
+            {
+                type: 'price',
+                value: price,
+                label: 'at $'
+            }
+        ],
+        date: time
+    })
 
-    // const reward = (parseFloat(price) * 0.85).toString()
+    const reward = (parseFloat(price) * 0.85).toString()
     // send mail to seller
-    // await sendMail(seller, 
-    //     `Your trade on NFT #${tokenid} is successfully completed at price ${utils.formatUnits(price)} BNB.
-    //      You earned ${utils.formatUnits(reward)} BNB from this trade.`
-    // )
+    await sendMail(seller, 
+        `Your trade on NFT #${tokenid} is successfully completed at price ${utils.formatUnits(price)} BNB.
+         You earned ${utils.formatUnits(reward)} BNB from this trade.`
+    )
 }
 
 const lobbyJoin = async (tokenid, time) => {
@@ -174,27 +212,51 @@ const battleStart = async (tokenid1, tokenid2, time) => {
     })
     logger.user(`battle NFT#${tokenid1} NFT#${tokenid2}`)
 
-    // recordActivity({
-    //     address: nft1.owner,
-    //     activity: 'Start Battle',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid1,
-    //     price: null,
-    //     fight: nft1.fight + 1,
-    //     date: time
-    // })
+    recordActivity({
+        address: nft1.owner,
+        activity: 'Start Battle',
+        links: [
+            {
+                type: 'nft',
+                value: nft1.tokenid,
+                label: ''
+            },
+            {
+                type: 'nft',
+                value: nft2.tokenid,
+                label: 'against $'
+            },
+            {
+                type: 'fight',
+                value: nft1.fight + 1,
+                label: 'for fight $'
+            }
+        ],
+        date: time
+    })
 
-    // recordActivity({
-    //     address: nft2.owner,
-    //     activity: 'Start Battle',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid2,
-    //     price: null,
-    //     fight: nft2.fight,
-    //     date: time
-    // })
+    recordActivity({
+        address: nft2.owner,
+        activity: 'Start Battle',
+        links: [
+            {
+                type: 'nft',
+                value: nft2.tokenid,
+                label: ''
+            },
+            {
+                type: 'nft',
+                value: nft1.tokenid,
+                label: 'against $'
+            },
+            {
+                type: 'fight',
+                value: nft2.fight + 1,
+                label: 'for fight $'
+            }
+        ],
+        date: time
+    })
 }
 
 const battleVote = async (tokenid, voter, time) => {
@@ -204,22 +266,29 @@ const battleVote = async (tokenid, voter, time) => {
         { $push: {votes: voter}}
     )
     logger.user(`vote voter@${voter} NFT#${tokenid}`)
-    // recordActivity({
-    //     address: voter,
-    //     activity: 'Vote',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid,
-    //     price: null,
-    //     round: nft.fight,
-    //     date: time
-    // })
+    recordActivity({
+        address: voter,
+        activity: 'Vote',
+        links: [
+            {
+                type: 'nft',
+                value: tokenid,
+                label: 'voted for $'
+            },
+            {
+                type: 'fight',
+                value: nft.fight,
+                label: 'for fight $'
+            }
+        ],
+        date: time
+    })
 
     // send mail to seller
-    // await sendMail(voter, 
-    //     `Thanks for participating the round ${nft.round} of bet of NFT#${tokenid}, 
-    //     You will receive the result of this round when it is finished via mails.`
-    // )
+    await sendMail(voter, 
+        `Thanks for participating the round ${nft.round} of bet of NFT#${tokenid}, 
+        You will receive the result of this round when it is finished via mails.`
+    )
 }
 
 const battleEnd = async (tokenid1, tokenid2, typa, reward, time) => {
@@ -247,54 +316,89 @@ const battleEnd = async (tokenid1, tokenid2, typa, reward, time) => {
     )
     logger.user(`end NFT#${tokenid1} NFT#${tokenid2} winner:${typa}`)
 
-    // recordActivity({
-    //     address: nft.owner,
-    //     activity: 'End Battle',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid,
-    //     price: null,
-    //     round: round,
-    //     date: Date.now()
-    // })
+    recordActivity({
+        address: nft1.owner,
+        activity: 'End Battle',
+        links: [
+            {
+                type: 'nft',
+                value: nft1.tokenid,
+                label: ''
+            },
+            {
+                type: 'nft',
+                value: nft2.tokenid,
+                label: 'against $'
+            },
+            {
+                type: 'fight',
+                value: nft1.fight,
+                label: 'for fight $'
+            }
+        ],
+        date: time
+    })
 
-    // if(type == 3) {
-    //     await Account.updateMany(
-    //         { address: winVoters.concat(loseVoters)},
-    //         { $push: {
-    //             mails: {
-    //                 id: crypto.randomUUID(),
-    //                 content: `The round ${nft.round} of NFT#${tokenid} appears to be a draw, reward is returned to you`,
-    //                 read: false,
-    //                 date: Date.now()
-    //             }
-    //         }}
-    //     )
-    // } else {
-    //     await Account.updateMany(
-    //         { address:  winVoters},
-    //         { $push: {
-    //             mails: {
-    //                 id: crypto.randomUUID(),
-    //                 content: `Congratulations! Your vote on the round ${nft.round} of NFT#${tokenid} is successful, 
-    //                 you earned ${utils.formatUnits(reward)} BNB from this round`,
-    //                 read: false,
-    //                 date: Date.now()
-    //             }
-    //         }}
-    //     )
-    //     await Account.updateMany(
-    //         { address: loseVoters},
-    //         { $push: {
-    //             mails: {
-    //                 id: crypto.randomUUID(),
-    //                 content: `Unfortunately! Your vote on the round ${nft.round} of NFT#${tokenid} is failed`,
-    //                 read: false,
-    //                 date: Date.now()
-    //             }
-    //         }}
-    //     )
-    // }
+    recordActivity({
+        address: nft2.owner,
+        activity: 'End Battle',
+        links: [
+            {
+                type: 'nft',
+                value: nft2.tokenid,
+                label: ''
+            },
+            {
+                type: 'nft',
+                value: nft1.tokenid,
+                label: 'against $'
+            },
+            {
+                type: 'fight',
+                value: nft2.fight,
+                label: 'for fight $'
+            }
+        ],
+        date: time
+    })
+
+    if(type == 3) {
+        await Account.updateMany(
+            { address: winVoters.concat(loseVoters)},
+            { $push: {
+                mails: {
+                    id: crypto.randomUUID(),
+                    content: `The round ${nft.round} of NFT#${tokenid} appears to be a draw, reward is returned to you`,
+                    read: false,
+                    date: Date.now()
+                }
+            }}
+        )
+    } else {
+        await Account.updateMany(
+            { address:  winVoters},
+            { $push: {
+                mails: {
+                    id: crypto.randomUUID(),
+                    content: `Congratulations! Your vote on the round ${nft.round} of NFT#${tokenid} is successful, 
+                    you earned ${utils.formatUnits(reward)} BNB from this round`,
+                    read: false,
+                    date: Date.now()
+                }
+            }}
+        )
+        await Account.updateMany(
+            { address: loseVoters},
+            { $push: {
+                mails: {
+                    id: crypto.randomUUID(),
+                    content: `Unfortunately! Your vote on the round ${nft.round} of NFT#${tokenid} is failed`,
+                    read: false,
+                    date: Date.now()
+                }
+            }}
+        )
+    }
 }
 
 // Todos
@@ -306,18 +410,26 @@ const upgrade = async (tokenid) => {
     logger.user(`upgrade NFT#${tokenid}`)
 
 
-    // recordActivity({
-    //     address: nft.owner,
-    //     activity: 'NFT Upgrade',
-    //     from: null,
-    //     to: null,
-    //     nft: tokenid,
-    //     price: null,
-    //     round: null,
-    //     date: Date.now()
-    // })
+    recordActivity({
+        address: nft.owner,
+        activity: 'NFT Upgrade',
+        links: [
+            {
+                type: 'nft',
+                value: tokenid,
+                label: ''
+            },
+            {
+                type: 'level',
+                value: nft.level + 1,
+                label: 'upgraded to level $'
+            }
+        ],
+        date: Date.now()/1000
+    })
 }
 
+// todos
 const valueTransfer = async (tokenid, dieTokenid) => {
     logger.user(`transfer from NFT#${dieTokenid} to NFT#${tokenid}`)
     // later record activity

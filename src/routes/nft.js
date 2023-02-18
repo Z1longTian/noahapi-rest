@@ -41,12 +41,22 @@ router.get('/:tokenid', nftExisted, activeNft,  async (req, res) => {
     const nft = (await NFT.aggregate(
         [
             { $match: { tokenid: Number(tokenid)} },
-            { $lookup: {
-                from: Account.collection.name,
-                localField: 'owner',
-                foreignField: 'address',
-                as: 'ownerInfo'
-            }},
+            { 
+                $lookup: {
+                    from: Account.collection.name,
+                    localField: 'owner',
+                    foreignField: 'address',
+                    as: 'ownerInfo'
+                }
+            },
+            { 
+                $lookup: {
+                    from: Account.collection.name,
+                    localField: 'creator',
+                    foreignField: 'address',
+                    as: 'creatorInfo'
+                }
+            },
             {
                 $lookup: {
                     from: Account.collection.name,
@@ -175,7 +185,7 @@ router.post('/search', async (req, res) => {
     const keyFilter = () => {
         if(!isNumeric(key) || key == '') {
             const reg = new RegExp(key, 'i')
-            const fields = ['name', 'owner']
+            const fields = ['name']
             return { $or: fields.map(field => {
                 const query = {}
                 query[field] = reg
