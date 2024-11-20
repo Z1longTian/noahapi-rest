@@ -7,8 +7,8 @@ ENV NODE_ENV production
 ENV PORT 8000
 ENV ADMINS 0x881bb1aeDFe576945EE3801954E9e0DE13d9606C
 ENV API_KEY 37b20687-e0c7-4208-bc34-16284cd26ecf
-ENV MONGODB_URI mongodb+srv://woodman:yy6Y8mzBK18OAYZG@noahseverless.vwxjk.mongodb.net/noah?retryWrites=true&w=majority
-ENV NODE_PROVIDER https://twilight-billowing-hill.bsc-testnet.discover.quiknode.pro/8857e03b6f31911b688b5123b1471492b83152ff/
+ENV MONGODB_URI mongodb+srv://noah:Noah@noahmongodb.gdgpp.mongodb.net/
+ENV NODE_PROVIDER https://necessary-fluent-general.bsc-testnet.quiknode.pro/a661861737050eacc06c78004a1d06bb7a0e4768
 
 COPY package*.json ./
 
